@@ -177,7 +177,7 @@ st.markdown("""
     <div class="header-nav">
         <a href="." target="_self">Home</a>
         <a href="https://en.wikipedia.org/wiki/Scheduling_(computing)" target="_blank">Documentation</a>
-        <a href="https://github.com" target="_blank">GitHub</a>
+        <a href="https://github.com/Rakshit239/OS-project-" target="_blank">GitHub</a>
     </div>
 </div>
 """, unsafe_allow_html=True)
