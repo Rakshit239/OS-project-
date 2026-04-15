@@ -2,6 +2,8 @@
 
 import streamlit as st
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.rcParams['font.family'] = 'sans-serif'
 import requests
 from streamlit_lottie import st_lottie
 
@@ -23,151 +25,463 @@ from core_of_cpuShedular import (
 
 st.set_page_config(page_title="Energy-Efficient CPU Scheduling Simulator", layout="wide", page_icon="⚡")
 
-# --- CUSTOM ANIMATIONS AND STYLING ---
+# --- COMPLETE UI OVERHAUL: WHITE & GOLD LUXURY THEME ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
     
     html, body, [class*="css"] {
-        font-family: 'Outfit', sans-serif;
+        font-family: 'Inter', sans-serif;
     }
+
+    /* ===== ANIMATED BACKGROUND ===== */
     .stApp {
-        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        background: #faf9f6;
+        background-attachment: fixed;
+        overflow-x: hidden;
     }
+
+    /* ===== MESH GRADIENT BLOBS ===== */
+    .mesh-bg {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+    }
+    .blob {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.5;
+        mix-blend-mode: multiply;
+    }
+    .blob-1 {
+        width: 600px; height: 600px;
+        background: radial-gradient(circle, rgba(212,175,55,0.45), transparent 70%);
+        top: -10%; left: -5%;
+        animation: blobMove1 18s ease-in-out infinite alternate;
+    }
+    .blob-2 {
+        width: 500px; height: 500px;
+        background: radial-gradient(circle, rgba(255,248,220,0.6), transparent 70%);
+        top: 30%; right: -10%;
+        animation: blobMove2 22s ease-in-out infinite alternate;
+    }
+    .blob-3 {
+        width: 450px; height: 450px;
+        background: radial-gradient(circle, rgba(245,208,96,0.35), transparent 70%);
+        bottom: -5%; left: 30%;
+        animation: blobMove3 20s ease-in-out infinite alternate;
+    }
+    .blob-4 {
+        width: 350px; height: 350px;
+        background: radial-gradient(circle, rgba(255,255,255,0.8), transparent 70%);
+        top: 50%; left: 10%;
+        animation: blobMove4 25s ease-in-out infinite alternate;
+    }
+    .blob-5 {
+        width: 500px; height: 500px;
+        background: radial-gradient(circle, rgba(184,134,11,0.2), transparent 70%);
+        top: 10%; right: 20%;
+        animation: blobMove5 16s ease-in-out infinite alternate;
+    }
+    @keyframes blobMove1 {
+        0% { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(120px, 80px) scale(1.15); }
+    }
+    @keyframes blobMove2 {
+        0% { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(-100px, 60px) scale(1.1); }
+    }
+    @keyframes blobMove3 {
+        0% { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(80px, -70px) scale(1.2); }
+    }
+    @keyframes blobMove4 {
+        0% { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(-60px, -90px) scale(0.9); }
+    }
+    @keyframes blobMove5 {
+        0% { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(70px, 100px) scale(1.1); }
+    }
+
+    /* ===== NOISE TEXTURE OVERLAY ===== */
+    .noise-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.03;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        background-repeat: repeat;
+        background-size: 256px 256px;
+    }
+
+    /* ===== SIDEBAR: FROSTED GLASS ===== */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0d1b2a 0%, #1b263b 100%);
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.55) !important;
+        backdrop-filter: blur(25px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
+        border-right: 1px solid rgba(212, 175, 55, 0.2);
+        box-shadow: 4px 0 30px rgba(0,0,0,0.04);
     }
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 {
+        color: #1a1a2e !important;
+        text-shadow: none !important;
+    }
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] .stMarkdown {
+        color: #333 !important;
+        text-shadow: none !important;
+    }
+
+    /* ===== TYPOGRAPHY ===== */
     p, label, .stMarkdown, .stSelectbox label, .stMarkdown li {
-        color: #e0f2f1 !important;
+        color: #2d2d3a !important;
+        text-shadow: none;
     }
-    /* Fix dropdown option text mixing with background */
     ul[role="listbox"] li, div[data-baseweb="select"] span {
-        color: #0d1b2a !important;
+        color: #2d2d3a !important;
     }
     h1, h2, h3, h4, h5, h6 {
-        color: #ffffff !important;
+        color: #1a1a2e !important;
+        text-shadow: none;
     }
+
+    /* ===== BUTTONS: GOLD LIQUID ===== */
     .stButton>button {
-        background: linear-gradient(45deg, #ff416c, #ff4b2b);
-        color: white;
-        border-radius: 8px;
-        border: none;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        transition: all 0.3s ease;
-        padding: 0.5rem 1rem;
-        font-weight: 600;
+        background: linear-gradient(135deg, #d4af37 0%, #f5d060 50%, #d4af37 100%);
+        background-size: 200% 200%;
+        animation: buttonShimmer 3s ease infinite;
+        color: #1a1a2e !important;
+        border-radius: 14px;
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        box-shadow: 0 4px 20px rgba(212, 175, 55, 0.25), inset 0 1px 0 rgba(255,255,255,0.5);
+        transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        padding: 0.7rem 1.4rem;
+        font-weight: 700;
         width: 100%;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-size: 0.85rem;
+    }
+    @keyframes buttonShimmer {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
     }
     .stButton>button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 15px rgba(255, 65, 108, 0.5);
-        color: white;
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 12px 35px rgba(212, 175, 55, 0.4), 0 0 20px rgba(212, 175, 55, 0.15), inset 0 1px 0 rgba(255,255,255,0.6);
+        color: #1a1a2e !important;
     }
+    .stButton>button:active {
+        transform: translateY(-1px) scale(0.99);
+        transition: all 0.1s ease;
+    }
+
+    /* ===== METRIC CARDS: LIQUID GLASS ===== */
     .stMetric {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 15px;
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.6);
+        padding: 22px;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255,255,255,0.8);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.7);
         text-align: center;
+        transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .stMetric::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(212, 175, 55, 0.05), transparent);
+        animation: metricGlow 4s ease-in-out infinite;
+        pointer-events: none;
+    }
+    @keyframes metricGlow {
+        0%, 100% { transform: rotate(0deg); opacity: 0; }
+        50% { transform: rotate(180deg); opacity: 1; }
+    }
+    .stMetric:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 50px rgba(212, 175, 55, 0.15), 0 0 30px rgba(212, 175, 55, 0.05), inset 0 1px 0 rgba(255,255,255,0.9);
+        border-color: rgba(212, 175, 55, 0.3);
     }
     .stMetric label {
         display: block !important;
         text-align: center !important;
+        font-weight: 600 !important;
+        color: #555 !important;
+        font-size: 0.85rem !important;
+        letter-spacing: 0.5px;
     }
     [data-testid="stMetricValue"] {
-        color: #00e676 !important;
+        color: #b8860b !important;
         text-align: center;
-    }
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
-    }
-    .animated-title {
-        animation: pulse 2.5s infinite;
-        background: -webkit-linear-gradient(#f12711, #f5af19);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 700;
-        font-size: 2.8rem;
-        margin-bottom: 0px;
-        padding-bottom: 10px;
-    }
-    hr {
-        border-top: 2px solid rgba(255,255,255,0.1) !important;
+        font-size: 1.9rem !important;
+        font-weight: 800 !important;
     }
 
-    /* Hide Streamlit Default Header and Footer */
+    /* ===== ANIMATED TITLE ===== */
+    @keyframes titleShimmer {
+        0% { background-position: -200% center; }
+        100% { background-position: 200% center; }
+    }
+    .animated-title {
+        background: linear-gradient(90deg, #1a1a2e, #d4af37, #b8860b, #d4af37, #1a1a2e);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: titleShimmer 4s linear infinite;
+        font-weight: 900;
+        font-size: 3rem;
+        margin-bottom: 0px;
+        padding-bottom: 10px;
+        line-height: 1.1;
+    }
+
+    /* ===== DIVIDERS ===== */
+    hr {
+        border: none !important;
+        height: 1px !important;
+        background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.4), transparent) !important;
+    }
+
+    /* ===== HIDE DEFAULTS ===== */
     header[data-testid="stHeader"] {visibility: hidden;}
     footer {visibility: hidden;}
     #MainMenu {visibility: hidden;}
-    
-    /* Custom Header Styles */
+
+    /* ===== CUSTOM HEADER: FLOATING GLASS ===== */
     .custom-header {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
-        background: rgba(15, 32, 39, 0.95);
-        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(30px) saturate(200%);
+        -webkit-backdrop-filter: blur(30px) saturate(200%);
         z-index: 99999;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 15px 35px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        border-bottom: 2px solid #ff4b2b;
+        padding: 16px 40px;
+        box-shadow: 0 1px 30px rgba(0, 0, 0, 0.06);
+        border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+        transition: all 0.3s ease;
     }
     .header-logo {
-        color: #e0f2f1;
-        font-size: 1.6rem;
-        font-weight: 700;
-        letter-spacing: 1px;
+        color: #1a1a2e;
+        font-size: 1.7rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
     }
     .header-logo span {
-        color: #ff4b2b;
+        background: linear-gradient(135deg, #d4af37, #b8860b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
     .header-nav a {
-        color: #a8dadc;
+        color: #444;
         text-decoration: none;
-        margin-left: 25px;
+        margin-left: 30px;
         font-weight: 600;
-        transition: color 0.3s;
+        font-size: 0.95rem;
+        transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        padding: 8px 16px;
+        border-radius: 10px;
+        position: relative;
+    }
+    .header-nav a::after {
+        content: '';
+        position: absolute;
+        bottom: 2px;
+        left: 50%;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #d4af37, #b8860b);
+        transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        transform: translateX(-50%);
+        border-radius: 2px;
     }
     .header-nav a:hover {
-        color: #ff416c;
+        color: #b8860b;
+        background: rgba(212, 175, 55, 0.08);
+    }
+    .header-nav a:hover::after {
+        width: 60%;
     }
     
-    /* Make space for fixed header and footer */
+    /* ===== SPACING FOR FIXED ELEMENTS ===== */
     .block-container {
-        padding-top: 80px !important;
-        padding-bottom: 90px !important;
+        padding-top: 100px !important;
+        padding-bottom: 110px !important;
     }
 
-    /* Custom Footer Styles */
+    /* ===== CUSTOM FOOTER: GLASS ===== */
     .custom-footer {
         position: fixed;
         bottom: 0;
         left: 0;
         width: 100%;
-        background: rgba(13, 27, 42, 0.95);
-        color: #a8dadc;
+        background: rgba(255, 255, 255, 0.5);
+        color: #555;
         text-align: center;
-        padding: 15px 0;
-        font-size: 0.95rem;
+        padding: 18px 0;
+        font-size: 0.9rem;
         z-index: 99999;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(212, 175, 55, 0.15);
+        backdrop-filter: blur(25px) saturate(180%);
+        -webkit-backdrop-filter: blur(25px) saturate(180%);
     }
     .custom-footer a {
-        color: #00e676;
+        background: linear-gradient(135deg, #d4af37, #b8860b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         text-decoration: none;
-        font-weight: bold;
+        font-weight: 700;
+    }
+
+    /* ===== TABLE STYLING ===== */
+    .stTable, [data-testid="stTable"] {
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    table {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        background: rgba(255,255,255,0.5) !important;
+        backdrop-filter: blur(15px) !important;
+        border-radius: 16px !important;
+        overflow: hidden !important;
+        border: 1px solid rgba(212, 175, 55, 0.15) !important;
+    }
+    th {
+        background: linear-gradient(135deg, #d4af37, #e8c84a) !important;
+        color: #1a1a2e !important;
+        font-weight: 700 !important;
+        padding: 14px 16px !important;
+        font-size: 0.9rem !important;
+    }
+    td {
+        color: #2d2d3a !important;
+        padding: 12px 16px !important;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.08) !important;
+    }
+    tr:hover td {
+        background: rgba(212, 175, 55, 0.05) !important;
+    }
+
+    /* ===== FLOATING PARTICLES BACKGROUND ===== */
+    .particles-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+    }
+    .particle {
+        position: absolute;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(212, 175, 55, 0.25), transparent);
+        animation: floatUp linear infinite;
+    }
+    @keyframes floatUp {
+        0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* ===== DESCRIPTION BOX ===== */
+    .desc-box {
+        background: rgba(255,255,255,0.55);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border-radius: 16px;
+        padding: 20px 28px;
+        border: 1px solid rgba(212, 175, 55, 0.15);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        margin-top: -10px;
+        margin-bottom: 30px;
+        color: #444 !important;
+        font-size: 1.05rem;
+        line-height: 1.7;
+        animation: fadeSlideIn 0.8s ease-out;
+    }
+    @keyframes fadeSlideIn {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .desc-box b {
+        color: #b8860b;
+    }
+
+    /* ===== SUCCESS ALERTS ===== */
+    [data-testid="stAlert"] {
+        background: rgba(255,255,255,0.55) !important;
+        backdrop-filter: blur(15px) !important;
+        border: 1px solid rgba(212, 175, 55, 0.2) !important;
+        border-radius: 14px !important;
+        color: #2d2d3a !important;
+    }
+
+    /* ===== SUBHEADERS ===== */
+    .stSubheader, h2 {
+        animation: fadeSlideIn 0.6s ease-out;
     }
 </style>
+""", unsafe_allow_html=True)
+
+# Inject Mesh Gradient Blobs + Noise Overlay + Depth Particles
+st.markdown("""
+<div class="mesh-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="blob blob-4"></div>
+    <div class="blob blob-5"></div>
+</div>
+<div class="noise-overlay"></div>
+<div class="particles-bg">
+    <!-- Near layer: sharp, larger, slower -->
+    <div class="particle" style="width:10px;height:10px;left:8%;animation-duration:25s;animation-delay:0s;filter:blur(0px);opacity:0.35;"></div>
+    <div class="particle" style="width:12px;height:12px;left:72%;animation-duration:28s;animation-delay:3s;filter:blur(0px);opacity:0.3;"></div>
+    <div class="particle" style="width:9px;height:9px;left:45%;animation-duration:22s;animation-delay:6s;filter:blur(0px);opacity:0.35;"></div>
+    <!-- Mid layer -->
+    <div class="particle" style="width:6px;height:6px;left:15%;animation-duration:18s;animation-delay:1s;filter:blur(1px);opacity:0.25;"></div>
+    <div class="particle" style="width:5px;height:5px;left:55%;animation-duration:20s;animation-delay:4s;filter:blur(1px);opacity:0.25;"></div>
+    <div class="particle" style="width:7px;height:7px;left:82%;animation-duration:17s;animation-delay:2s;filter:blur(1px);opacity:0.2;"></div>
+    <div class="particle" style="width:6px;height:6px;left:35%;animation-duration:19s;animation-delay:5s;filter:blur(1px);opacity:0.22;"></div>
+    <!-- Far layer: blurry, tiny, fastest -->
+    <div class="particle" style="width:3px;height:3px;left:22%;animation-duration:14s;animation-delay:0.5s;filter:blur(2px);opacity:0.15;"></div>
+    <div class="particle" style="width:2px;height:2px;left:60%;animation-duration:12s;animation-delay:2.5s;filter:blur(3px);opacity:0.12;"></div>
+    <div class="particle" style="width:3px;height:3px;left:90%;animation-duration:13s;animation-delay:7s;filter:blur(2px);opacity:0.15;"></div>
+    <div class="particle" style="width:2px;height:2px;left:40%;animation-duration:11s;animation-delay:1.5s;filter:blur(3px);opacity:0.1;"></div>
+    <div class="particle" style="width:4px;height:4px;left:5%;animation-duration:15s;animation-delay:8s;filter:blur(2px);opacity:0.13;"></div>
+    <!-- Light flares: pulsing large orbs -->
+    <div class="particle" style="width:20px;height:20px;left:30%;animation-duration:30s;animation-delay:0s;filter:blur(8px);opacity:0.08;background:radial-gradient(circle,rgba(255,215,0,0.5),transparent);"></div>
+    <div class="particle" style="width:25px;height:25px;left:70%;animation-duration:35s;animation-delay:5s;filter:blur(10px);opacity:0.06;background:radial-gradient(circle,rgba(255,248,220,0.6),transparent);"></div>
+    <div class="particle" style="width:18px;height:18px;left:50%;animation-duration:32s;animation-delay:10s;filter:blur(7px);opacity:0.07;background:radial-gradient(circle,rgba(212,175,55,0.4),transparent);"></div>
+</div>
 """, unsafe_allow_html=True)
 
 # Inject Custom Header Navbar
@@ -195,7 +509,7 @@ with col2:
     st.markdown("<h1 class='animated-title'>Energy-Efficient CPU<br>Scheduling Simulator</h1>", unsafe_allow_html=True)
 
 st.markdown("""
-<div style="text-align:left; font-size: 1.1rem; color: #a8dadc; margin-top: -15px; margin-bottom: 25px;">
+<div class="desc-box">
 This tool simulates classic CPU scheduling algorithms and a proposed <b>Energy-Efficient</b> scheduler.<br>
 Compare performance using <b>waiting time, turnaround time, response time, CPU utilization & energy</b>.
 </div>
@@ -274,31 +588,35 @@ if run_button:
     st.subheader("📍 Gantt Chart")
 
     fig, ax = plt.subplots(figsize=(10, 3))
-    # Make plot background transparent with white text for dark mode
     fig.patch.set_facecolor('none')
     ax.set_facecolor('none')
-    ax.tick_params(colors='white')
-    ax.xaxis.label.set_color('white')
-    ax.title.set_color('white')
+    label_color = '#444444'
+    ax.tick_params(colors=label_color, labelsize=9)
+    ax.xaxis.label.set_color(label_color)
+    ax.title.set_color(label_color)
     for spine in ax.spines.values():
-        spine.set_edgecolor('white')
+        spine.set_edgecolor('#ddd')
+        spine.set_linewidth(0.5)
 
     pids = sorted({e.pid for e in result.gantt if e.pid})
     pid_map = {p: i for i, p in enumerate(pids)}
 
-    # Modern bar colors
-    colors = ['#ff416c', '#f5af19', '#00e676', '#00bcd4', '#9c27b0']
+    # White & Gold palette for bars
+    colors = ['#d4af37', '#e8c84a', '#c5993a', '#f0d56c', '#b8860b']
 
     for entry in result.gantt:
         if entry.pid:
             c = colors[pid_map[entry.pid] % len(colors)]
-            ax.barh(pid_map[entry.pid], entry.end - entry.start, left=entry.start, color=c, edgecolor='white', alpha=0.9)
-            ax.text((entry.start + entry.end) / 2, pid_map[entry.pid], entry.pid, ha='center', va='center', color='black', fontweight='bold')
+            ax.barh(pid_map[entry.pid], entry.end - entry.start, left=entry.start,
+                    color=c, edgecolor='white', alpha=0.92, linewidth=2, height=0.6)
+            ax.text((entry.start + entry.end) / 2, pid_map[entry.pid], entry.pid,
+                    ha='center', va='center', color='#1a1a2e', fontweight='bold', fontsize=9)
 
     ax.set_yticks(list(pid_map.values()))
     ax.set_yticklabels(pids)
     ax.set_xlabel("Time")
-    ax.grid(True, alpha=0.2)
+    ax.grid(True, alpha=0.08, color='#888')
+    fig.tight_layout()
     st.pyplot(fig)
 
 # --------------------------
@@ -337,29 +655,33 @@ if compare_button:
     fig, ax = plt.subplots(figsize=(11, 5))
     fig.patch.set_facecolor('none')
     ax.set_facecolor('none')
-    ax.tick_params(colors='white')
-    ax.xaxis.label.set_color('white')
-    ax.yaxis.label.set_color('white')
-    ax.title.set_color('white')
+    label_color = '#444444'
+    ax.tick_params(colors=label_color, labelsize=9)
+    ax.xaxis.label.set_color(label_color)
+    ax.yaxis.label.set_color(label_color)
+    ax.title.set_color(label_color)
     for spine in ax.spines.values():
-        spine.set_edgecolor('white')
+        spine.set_edgecolor('#ddd')
+        spine.set_linewidth(0.5)
 
     algos = [r.algorithm for r in results]
     energy = [r.total_energy for r in results]
 
-    # Gradient-like color mapped list
-    bar_colors = ['#ff4b2b', '#f5af19', '#00e676', '#00bcd4', '#9c27b0']
-    bars = ax.bar(algos, energy, color=bar_colors[:len(algos)], edgecolor='white', alpha=0.9)
-    ax.set_ylabel("Energy (units)")
-    ax.set_xlabel("Algorithm")
-    ax.set_title("Energy Consumption Comparison")
+    # Gold spectrum palette
+    bar_colors = ['#d4af37', '#e8c84a', '#c5993a', '#f0d56c', '#b8860b']
+    bars = ax.bar(algos, energy, color=bar_colors[:len(algos)], edgecolor='white',
+                  alpha=0.92, linewidth=2, width=0.55)
+    ax.set_ylabel("Energy (units)", fontweight='bold')
+    ax.set_xlabel("Algorithm", fontweight='bold')
+    ax.set_title("Energy Consumption Comparison", fontweight='bold', fontsize=14, pad=15)
 
     for bar in bars:
         yval = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2, yval + 1, round(yval,1), ha='center', va='bottom', color='white', fontweight='bold')
+        ax.text(bar.get_x() + bar.get_width()/2, yval + 0.15, round(yval,1),
+                ha='center', va='bottom', color='#b8860b', fontweight='bold', fontsize=10)
 
     plt.xticks(rotation=30, ha='right')
-    ax.grid(True, axis='y', alpha=0.2)
+    ax.grid(True, axis='y', alpha=0.08, color='#888')
     fig.tight_layout()
 
     st.pyplot(fig)
